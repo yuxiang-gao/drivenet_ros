@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.1)
 project(gmsl_single_camera)
 
 set (CMAKE_CXX_STANDARD 11)
-
+set(Driveworks_INCLUDE_DIR /usr/local/driveworks/include)
+set(Driveworks_LIBRARY /usr/local/driveworks/lib)
 # FindDriveworks.cmake, ArchConfiguration.cmake, and LibFindMacros.cmake were needed for my setup they are taken from driveworks/samples/cmake/
 # ArchConfiguration.cmake was the only file that needed small changes, remove the fatal error on line 17 and add the following lines in its place
          set(VIBRANTE TRUE)
@@ -40,6 +41,7 @@ include_directories(
 # TODO: add a FindNvmedia.cmake file for this? Why does it not exist?
 include_directories(/usr/share/visionworks/sources/3rdparty/nvmedia/
 /usr/share/visionworks/VisionWorks-1.6-Samples/3rdparty/glfw3/include/
+/usr/local/driveworks
 )
 
 
@@ -64,4 +66,10 @@ target_link_libraries(${NODE_NAME}
   #glfw3
   ${CUDA_LIBRARY}
   ${OpenCV_LIBS} 
+)
+
+install(TARGETS ${NODE_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

@@ -9,7 +9,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <depend>roscpp</depend>
   <depend>libglew-dev</depend><!--TODO: Figure out what actually needs this library-->
-  <maintainer email="">wei</maintainer>
+  <maintainer email="ddd@sss.com">wei</maintainer>
   <license>BSD</license>
 
 </package>
