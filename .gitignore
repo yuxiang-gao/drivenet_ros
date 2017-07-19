@@ -1,0 +1,4 @@
+/build
+.vscode
+.cmaketools.json
+c_cpp_propertis.json

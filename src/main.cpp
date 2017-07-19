@@ -32,7 +32,7 @@
 // DRIVENET COMMON
 #include <drivenet/common/DriveNet.hpp>
 #include <drivenet/common/common.hpp>
-
+#include "drivenet/common/cv_connection.hpp"
 
 //------------------------------------------------------------------------------
 // Method declarations
@@ -98,6 +98,7 @@ int main(int argc, const char **argv)
 //------------------------------------------------------------------------------
 void runPipeline(DriveNet& driveNet, float32_t framerate)
 {
+    OpenCVConnector cv;
     typedef std::chrono::high_resolution_clock myclock_t;
     typedef std::chrono::time_point<myclock_t> timepoint_t;
     auto frameDuration         = std::chrono::milliseconds((int)(1000 / framerate));
@@ -177,6 +178,14 @@ void runPipeline(DriveNet& driveNet, float32_t framerate)
             returnNextFrameImages(rcbCudaImage, rgbaGLImage);
 
             gWindow->swapBuffers();
+        }
+        // Read buffer to cvMat and publish
+        NvMediaImageSurfaceMap surfaceMap;
+        if(NvMediaImageSurfaceMap(rgbaGLImage->img, NVMEDIA_IMAGE_ACCESS_READ, &surfacceMap)==NVMEDIA_SATUS_OK){
+            cv.WriteToOpenCV((unsigned char*)surfaceMap.surfaceMap[0].mapping, rgbaGLImage->prop.width, rgbaGLImage->prop.height);
+            NvMediaImageUnlock(rgbaGLImage->img);
+        }else{
+            std::cout << "img read fail \n" ;
         }
         dwSensorCamera_returnFrame(&frameHandle);
         ++frame;

@@ -1,4 +1,4 @@
-#include "drivenet/cv_connection.hpp"
+#include "drivenet/common/cv_connection.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <vector>
