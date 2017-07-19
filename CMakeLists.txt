@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(gmsl_single_camera)
+project(drivenet)
 
 set (CMAKE_CXX_STANDARD 11)
 set(Driveworks_INCLUDE_DIR /usr/local/driveworks/include)
@@ -11,11 +11,14 @@ set(Driveworks_LIBRARY /usr/local/driveworks/lib)
 # this is the path I placed the driveworks cmake files in
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+add_subdirectory(include/driveworks_common)
+#add_subdirectory(include/drivenet/common)
+
 find_package(CUDA REQUIRED)
 find_package(Threads REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(Driveworks REQUIRED)
-find_package(OpenCV REQUIRED )
+find_package(OpenCV REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -41,32 +44,27 @@ include_directories(
 # TODO: add a FindNvmedia.cmake file for this? Why does it not exist?
 include_directories(/usr/share/visionworks/sources/3rdparty/nvmedia/
 /usr/share/visionworks/VisionWorks-1.6-Samples/3rdparty/glfw3/include/
-/usr/local/driveworks
+/usr/local/driveworks/include
+/usr/local/cuda/include
 )
 
+set(LIBRARIES
+    ${Driveworks_LIBRARIES}
+    ${OpenCV_LIBS} 
+    ${catkin_LIBRARIES}
+    dw_samples_common
+)
 
 # ros node name template
 set(NODE_NAME ${PROJECT_NAME}_node)
 
-add_executable(${NODE_NAME} src/main.cpp
-  src/ProgramArguments.cpp
-  src/ConsoleColor.cpp
-  src/WindowEGL.cpp
-  src/WindowGLFW.cpp  
-  src/cv_connection.cpp  
+cuda_add_executable(${NODE_NAME} src/main.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/drivenet/common/DriveNet.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/drivenet/common/common.cpp
+  #src/cv_connection.cpp  
 )
-target_link_libraries(${NODE_NAME}
-  ${catkin_LIBRARIES}
-  nvmedia  
-  ${GLEW_LIBRARY}
-  driveworks
-  GLESv2
-  EGL
-  drm
-  #glfw3
-  ${CUDA_LIBRARY}
-  ${OpenCV_LIBS} 
-)
+add_dependencies(${NODE_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${NODE_NAME} PRIVATE ${LIBRARIES})
 
 install(TARGETS ${NODE_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

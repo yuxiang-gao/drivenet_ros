@@ -28,7 +28,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-#include <ProgramArguments.hpp>
+#include <driveworks_common/ProgramArguments.hpp>
 
 #include <string>
 #include <string.h>

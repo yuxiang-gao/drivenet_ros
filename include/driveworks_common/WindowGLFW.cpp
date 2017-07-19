@@ -33,13 +33,15 @@
 #include <iostream>
 #include <cstring>
 
-
+#ifdef VIBRANTE
+    #include <GLFW/glfw3native.h>
+#endif
 
 // -----------------------------------------------------------------------------
 WindowGLFW::WindowGLFW(int width, int height, bool invisible)
     : WindowBase(width, height)
 {
- /*   if (glfwInit() == 0) {
+    if (glfwInit() == 0) {
         std::cout << "WindowGLFW: Failed initialize GLFW " << std::endl;
         throw std::exception();
     }
@@ -114,41 +116,39 @@ WindowGLFW::WindowGLFW(int width, int height, bool invisible)
         WindowGLFW *window = reinterpret_cast<WindowGLFW *>(glfwGetWindowUserPointer(win));
         window->onResizeWindowCallback(width, height);
     });
-*/
 }
 
 // -----------------------------------------------------------------------------
 WindowGLFW::~WindowGLFW(void)
 {
- //   glfwDestroyWindow(m_hWindow);
- //   glfwTerminate();
+    glfwDestroyWindow(m_hWindow);
+    glfwTerminate();
 }
-
 
 // -----------------------------------------------------------------------------
 EGLDisplay WindowGLFW::getEGLDisplay(void)
 {
-//#ifdef VIBRANTE
-  //  return glfwGetEGLDisplay();
-//#else
-  //  return 0;
-//#endif
+#ifdef VIBRANTE
+    return glfwGetEGLDisplay();
+#else
+    return 0;
+#endif
 }
 
 // -----------------------------------------------------------------------------
 EGLContext WindowGLFW::getEGLContext(void)
 {
-//#ifdef VIBRANTE
-  //  return glfwGetEGLContext(m_hWindow);
-//#else
-  //  return 0;
-//#endif
+#ifdef VIBRANTE
+    return glfwGetEGLContext(m_hWindow);
+#else
+    return 0;
+#endif
 }
 
 // -----------------------------------------------------------------------------
 void WindowGLFW::onKeyCallback(int key, int scancode, int action, int mods)
 {
- /*   if (!m_keyPressCallback)
+    if (!m_keyPressCallback)
         return;
 
     (void)mods;
@@ -157,13 +157,12 @@ void WindowGLFW::onKeyCallback(int key, int scancode, int action, int mods)
 
     if (action == GLFW_PRESS && mods == 0)
         m_keyPressCallback(key);
-*/
 }
 
 // -----------------------------------------------------------------------------
 void WindowGLFW::onMouseButtonCallback(int button, int action, int mods)
 {
-/*    (void)mods;
+    (void)mods;
 
     double x, y;
     glfwGetCursorPos(m_hWindow, &x, &y);
@@ -176,46 +175,41 @@ void WindowGLFW::onMouseButtonCallback(int button, int action, int mods)
             return;
         m_mouseUpCallback(button, (float)x, (float)y);
     }
-*/
 }
 
 // -----------------------------------------------------------------------------
 void WindowGLFW::onMouseMoveCallback(double x, double y)
 {
- /*   if (!m_mouseMoveCallback)
+    if (!m_mouseMoveCallback)
         return;
     m_mouseMoveCallback((float)x, (float)y);
-*/
 }
 
 // -----------------------------------------------------------------------------
 void WindowGLFW::onMouseWheelCallback(double dx, double dy)
 {
-/*    if (!m_mouseWheelCallback)
+    if (!m_mouseWheelCallback)
         return;
     m_mouseWheelCallback((float)dx, (float)dy);
-*/
 }
 
 // -----------------------------------------------------------------------------
 void WindowGLFW::onResizeWindowCallback(int width, int height)
 {
- /*   m_width  = width;
+    m_width  = width;
     m_height = height;
 
     if (!m_resizeWindowCallback)
         return;
     m_resizeWindowCallback(width, height);
-*/
 }
 
 // -----------------------------------------------------------------------------
 bool WindowGLFW::swapBuffers(void)
 {
- /*   glfwPollEvents();
+    glfwPollEvents();
     glfwSwapBuffers(m_hWindow);
     return true;
-*/
 }
 
 // -----------------------------------------------------------------------------
@@ -227,7 +221,7 @@ void WindowGLFW::resetContext()
 bool WindowGLFW::makeCurrent()
 {
     // Make the window's context current
-   // glfwMakeContextCurrent(m_hWindow);
+    glfwMakeContextCurrent(m_hWindow);
 
     return true;
 }
@@ -235,7 +229,7 @@ bool WindowGLFW::makeCurrent()
 // -----------------------------------------------------------------------------
 bool WindowGLFW::resetCurrent()
 {
-    //glfwMakeContextCurrent(nullptr);
+    glfwMakeContextCurrent(nullptr);
 
     return true;
 }
@@ -244,6 +238,6 @@ bool WindowGLFW::resetCurrent()
 bool WindowGLFW::setWindowSize(int width, int height)
 {
     // Set the window size
-    //glfwSetWindowSize(m_hWindow, width, height);
+    glfwSetWindowSize(m_hWindow, width, height);
     return true;
 }

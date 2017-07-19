@@ -18,7 +18,7 @@
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright (c) 2014-2016 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2015-2016 NVIDIA Corporation. All rights reserved.
 //
 // NVIDIA Corporation and its licensors retain all intellectual property and proprietary
 // rights in and to this software and related documentation and any modifications thereto.
@@ -28,58 +28,57 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef SAMPLES_COMMON_WINDOWGLFW_HPP__
-#define SAMPLES_COMMON_WINDOWGLFW_HPP__
+#include "Grid.hpp"
 
-#include "Window.hpp"
-
-#ifdef VIBRANTE
-    #define GLFW_INCLUDE_ES3
-    #define GLFW_EXPOSE_NATIVE_X11
-    #define GLFW_EXPOSE_NATIVE_EGL
-#endif
-#include <GLFW/glfw3.h>
-
-class WindowGLFW : public WindowBase
+//------------------------------------------------------------------------------
+void configureGrid(GridData_t *grid,
+                   uint32_t windowWidth,
+                   uint32_t windowHeight,
+                   uint32_t imageWidth,
+                   uint32_t imageHeight,
+                   uint32_t cellCount)
 {
-  public:
-    // create an X11 window
-    //   width: width of window
-    //   height: height of window
-    WindowGLFW(int width, int height, bool invisible = false);
+    uint32_t rows = 1;
+    uint32_t cols = 1;
+    bool increaseRows = false;
+    while( rows * cols < cellCount ) {
+      if(increaseRows)
+          rows++;
+      else
+          cols++;
+      increaseRows = !increaseRows;
+    }
 
-    // release window
-    ~WindowGLFW();
+    float camera_aspect_ratio = static_cast<float>(imageWidth) /
+     static_cast<float>(imageHeight);
 
-    // swap back and front buffers - return false if failed, i.e. window need close
-    bool swapBuffers();
+    uint32_t render_width = windowWidth / cols;
+    uint32_t render_height = static_cast<uint32_t>(render_width / camera_aspect_ratio);
 
-    // reset EGL context
-    void resetContext();
+    if( render_height * rows > windowHeight ) {
+        render_height = windowHeight / rows;
+        render_width = static_cast<uint32_t>(render_height * camera_aspect_ratio);
+    }
 
-    // make window context current to the calling thread
-    bool makeCurrent();
+    grid->rows = rows;
+    grid->cols = cols;
+    grid->offsetX = 0;
+    grid->offsetY = windowHeight - render_height;
+    grid->cellWidth = render_width;
+    grid->cellHeight = render_height;
+}
 
-    // remove current window context from the calling thread
-    bool resetCurrent();
+//------------------------------------------------------------------------------
+void gridCellRect(dwRect *rect,
+              const GridData_t &grid,
+              uint32_t cellIdx)
+{
+    //Set area
+    int row = cellIdx / grid.cols;
+    int col = cellIdx % grid.cols;
 
-    bool shouldClose() override {return false;/* return glfwWindowShouldClose(m_hWindow) != 0; */}
-
-    // Set the window size
-    bool setWindowSize(int width, int height);
-
-    // get EGL display
-    EGLDisplay getEGLDisplay(void);
-    EGLContext getEGLContext(void);
-
-    void onKeyCallback(int key, int scancode, int action, int mods);
-    void onMouseButtonCallback(int button, int action, int mods);
-    void onMouseMoveCallback(double x, double y);
-    void onMouseWheelCallback(double dx, double dy);
-    void onResizeWindowCallback(int width, int height);
-
-  protected:
-    GLFWwindow *m_hWindow;
-};
-
-#endif // SAMPLES_COMMON_WINDOWGLFW_HPP__
+    rect->width   = grid.cellWidth;
+    rect->height  = grid.cellHeight;
+    rect->x = grid.offsetX + grid.cellWidth*col;
+    rect->y = grid.offsetY - grid.cellHeight*row;
+}
