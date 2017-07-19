@@ -76,7 +76,7 @@ int main(int argc, const char **argv)
 
     if (sensorsInitialized && initPipeline(rawImageProps, cameraProps, gSdk)) {
 
-        initRenderer(gRCBProperties, &gRenderer, gSdk, gWindow);
+        //initRenderer(gRCBProperties, &gRenderer, gSdk, gWindow);
 
         DriveNet drivenet(gSdk);
 
@@ -109,7 +109,11 @@ void runPipeline(DriveNet& driveNet, float32_t framerate)
 
     gRun = gRun && dwSensor_start(gCameraSensor) == DW_SUCCESS;
 
-    while (gRun && !gWindow->shouldClose()) {
+    // image API translator: from gl to NvMedia
+    dwImageStreamerHandle_t gl2nvm = DW_NULL_HANDLE;
+    dwImageStreamer_initialize(&gl2nvm, &gRCBProperties, DW_IMAGE_NVMEDIA, gSdk);
+
+    while (gRun) {
         std::this_thread::yield();
 
         // run with at most 30FPS when the input is a video
@@ -174,19 +178,32 @@ void runPipeline(DriveNet& driveNet, float32_t framerate)
             // draw ROI of the second image
             drawROI(driveNet.drivenetParams.ROIs[1], DW_RENDERER_COLOR_YELLOW, gLineBuffer, gRenderer);
 
-            // Read buffer to cvMat and publish
-            NvMediaImageSurfaceMap surfaceMap;
-            if(NvMediaImageSurfaceMap(rgbaGLImage->img, NVMEDIA_IMAGE_ACCESS_READ, &surfaceMap)==NVMEDIA_SATUS_OK){
-                cv.WriteToOpenCV((unsigned char*)surfaceMap.surface[0].mapping, rgbaGLImage->prop.width, rgbaGLImage->prop.height);
-                NvMediaImageUnlock(rgbaGLImage->img);
-            }else{
-                std::cout << "img read fail \n" ;
+            // get NvMedia image
+            result = dwImageStreamer_postGL(rgbaGLImage, gl2nvm);
+            if (result != DW_SUCCESS) {
+                std::out << "\n Error postGL:" << dwGetStatus(result) << std::endl;
+            } else {
+                dwImageNvMedia *imageNvMedia = nullptr;
+                result = dwImageStreamer_receiveGL(&imageNvMedia, 600000, gl2nvm);
+                if (result == DW_SUCCESS && imageNvMedia) {
+                    // Read buffer to cvMat and publish
+                    NvMediaImageSurfaceMap surfaceMap;
+                    if(NvMediaImageSurfaceMap(imageNvMedia->img, NVMEDIA_IMAGE_ACCESS_READ, &surfaceMap)==NVMEDIA_SATUS_OK){
+                        cv.WriteToOpenCV((unsigned char*)surfaceMap.surface[0].mapping, rgbaGLImage->prop.width, rgbaGLImage->prop.height);
+                        NvMediaImageUnlock(imageNvMedia->img);
+                        dwImageStreamer_returnReceived(imageNvMedia, gl2nvm);
+                    }else{
+                        std::cout << "img read fail \n" ;
+                    }
+                }
             }
+            dwImageStreamer_waitPostedGL(&rgbaGLImage, gl2nvm);
+            
 
             // return used images
             returnNextFrameImages(rcbCudaImage, rgbaGLImage);
 
-            gWindow->swapBuffers();
+            //gWindow->swapBuffers();
         }
 
         dwSensorCamera_returnFrame(&frameHandle);
