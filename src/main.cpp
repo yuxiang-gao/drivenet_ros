@@ -174,19 +174,21 @@ void runPipeline(DriveNet& driveNet, float32_t framerate)
             // draw ROI of the second image
             drawROI(driveNet.drivenetParams.ROIs[1], DW_RENDERER_COLOR_YELLOW, gLineBuffer, gRenderer);
 
+            // Read buffer to cvMat and publish
+            NvMediaImageSurfaceMap surfaceMap;
+            if(NvMediaImageSurfaceMap(rgbaGLImage->img, NVMEDIA_IMAGE_ACCESS_READ, &surfaceMap)==NVMEDIA_SATUS_OK){
+                cv.WriteToOpenCV((unsigned char*)surfaceMap.surface[0].mapping, rgbaGLImage->prop.width, rgbaGLImage->prop.height);
+                NvMediaImageUnlock(rgbaGLImage->img);
+            }else{
+                std::cout << "img read fail \n" ;
+            }
+
             // return used images
             returnNextFrameImages(rcbCudaImage, rgbaGLImage);
 
             gWindow->swapBuffers();
         }
-        // Read buffer to cvMat and publish
-        NvMediaImageSurfaceMap surfaceMap;
-        if(NvMediaImageSurfaceMap(rgbaGLImage->img, NVMEDIA_IMAGE_ACCESS_READ, &surfacceMap)==NVMEDIA_SATUS_OK){
-            cv.WriteToOpenCV((unsigned char*)surfaceMap.surfaceMap[0].mapping, rgbaGLImage->prop.width, rgbaGLImage->prop.height);
-            NvMediaImageUnlock(rgbaGLImage->img);
-        }else{
-            std::cout << "img read fail \n" ;
-        }
+
         dwSensorCamera_returnFrame(&frameHandle);
         ++frame;
         if(stopFrame && frame == stopFrame)
