@@ -181,23 +181,23 @@ void runPipeline(DriveNet& driveNet, float32_t framerate)
             // get NvMedia image
             result = dwImageStreamer_postGL(rgbaGLImage, gl2nvm);
             if (result != DW_SUCCESS) {
-                std::out << "\n Error postGL:" << dwGetStatus(result) << std::endl;
+                std::cout << "\n Error postGL:" << dwGetStatusName(result) << std::endl;
             } else {
                 dwImageNvMedia *imageNvMedia = nullptr;
-                result = dwImageStreamer_receiveGL(&imageNvMedia, 600000, gl2nvm);
+                result = dwImageStreamer_receiveNvMedia(&imageNvMedia, 60000, gl2nvm);
                 if (result == DW_SUCCESS && imageNvMedia) {
                     // Read buffer to cvMat and publish
                     NvMediaImageSurfaceMap surfaceMap;
-                    if(NvMediaImageSurfaceMap(imageNvMedia->img, NVMEDIA_IMAGE_ACCESS_READ, &surfaceMap)==NVMEDIA_SATUS_OK){
+                    if(NvMediaImageLock(imageNvMedia->img, NVMEDIA_IMAGE_ACCESS_READ, &surfaceMap)==NVMEDIA_STATUS_OK){
                         cv.WriteToOpenCV((unsigned char*)surfaceMap.surface[0].mapping, rgbaGLImage->prop.width, rgbaGLImage->prop.height);
                         NvMediaImageUnlock(imageNvMedia->img);
-                        dwImageStreamer_returnReceived(imageNvMedia, gl2nvm);
+                        dwImageStreamer_returnReceivedNvMedia(imageNvMedia, gl2nvm);
                     }else{
                         std::cout << "img read fail \n" ;
                     }
                 }
             }
-            dwImageStreamer_waitPostedGL(&rgbaGLImage, gl2nvm);
+            dwImageStreamer_waitPostedGL(&rgbaGLImage, 33000, gl2nvm);
             
 
             // return used images

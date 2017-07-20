@@ -8,6 +8,8 @@ project(dw_samples_common C CXX)
 set (CMAKE_CXX_STANDARD 11)
 set(Driveworks_INCLUDE_DIR /usr/local/driveworks/include)
 set(Driveworks_LIBRARY /usr/local/driveworks/lib)
+set(GLFW_INCLUDE_DIR /usr/share/visionworks/VisionWorks-1.6-Samples/3rdparty/glfw3/include)
+set(GLFW_LIBRARY /usr/share/visionworks/VisionWorks-1.6-Samples/3rdparty/glfw3/libs)
 find_package(CUDA REQUIRED)
 find_package(Threads REQUIRED)
 find_package(GLEW REQUIRED)
@@ -18,6 +20,7 @@ include_directories(
   ${Driveworks_INCLUDE_DIR}
   ${CUDA_INCLUDE_DIRS}
   ${GLEW_INCLUDE_DIR}
+  ${GLFW_INCLUDE_DIR}
 )
 set(SOURCES
     Checks.hpp
@@ -61,13 +64,14 @@ set(SOURCES
 )
 set(VIBRANTE TRUE)
 add_definitions(-DVIBRANTE)
+set(glfw /usr/share/visionworks/VisionWorks-1.6-Samples/3rdparty/glfw3/lib)
 include_directories(/usr/share/visionworks/sources/3rdparty/nvmedia/
 /usr/share/visionworks/VisionWorks-1.6-Samples/3rdparty/glfw3/include/
 /usr/local/driveworks/include
 /usr/local/cuda/include
 )
-link_directories(${Driveworks_LIBRARIES} /usr/share/visionworks/VisionWorks-1.6-Samples/3rdparty/glfw3/lib)
-set(LIBRARIES ${Driveworks_LIBRARIES})
+link_directories(${Driveworks_LIBRARIES} ${GLFW_LIBRARIES})
+set(LIBRARIES ${Driveworks_LIBRARIES} ${GLFW_LIBRARIES})
 
 if(NOT VIBRANTE)
     list(APPEND LIBRARIES
@@ -85,7 +89,7 @@ if(VIBRANTE)
     )
 endif()
 
-list(APPEND LIBRARIES glfw)
+#list(APPEND LIBRARIES glfw)
 
 if(LINUX)
     list(APPEND LIBRARIES

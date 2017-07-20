@@ -50,6 +50,7 @@
 // CORE
 #include <dw/core/Context.h>
 #include <dw/core/Logger.h>
+#include <dw/core/NvMedia.h>
 
 // HAL
 #include <dw/sensors/Sensors.h>
